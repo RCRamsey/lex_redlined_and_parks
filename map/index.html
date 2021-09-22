@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset=utf-8 />
+    <title>Lexington Redlining & Parks</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link rel='icon' href='https://newmapsplus.github.io/favicon.ico' type='image/x-icon' />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin="" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 90%;
+            color: #1b385a;
+        }
+
+        h1 {
+            position: absolute;
+            margin-top: 0;
+            top: 10px;
+            left: 15px;
+            font-size: 1.5em;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            letter-spacing: .04em;
+            padding: 10px 15px;
+            /* Add styles to match Leaflet UI elements */
+            background: rgba(256, 256, 256, .9);
+            fill-opacity: .8;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            z-index: 800;
+        }
+
+        h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2em;
+            letter-spacing: .04em;
+
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        #about {
+            position: absolute;
+            bottom: 20px;
+            left: 15px;
+            width: 280px;
+            padding: 0 15px;
+            height: 400px;
+            overflow: scroll;
+            overflow-x: hidden;
+
+            /* Add styles to match Leaflet UI elements */
+            background: rgba(256, 256, 256, .9);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            z-index: 800;
+        }
+
+        #info {
+            position: absolute;
+            margin-top: 0;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            letter-spacing: .04em;
+            color: #3d3d3d;
+            padding: 5px 10px;
+            top: 130px;
+            right: 10px;
+            z-index: 1000;
+            border-radius: 4px;
+            border: 1px solid #aaa;
+            background: rgba(256, 256, 256, .3);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        }
+
+        p {
+            font-size: .9em;
+            line-height: 1.5em;
+        }
+
+        a {
+            color: #2c394f;
+            text-decoration: underline;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Leaflet popup styles */
+        .leaflet-popup-content {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.1em;
+            /*vw viewport width, 1vw = 1%*/
+            max-width: 20vw;
+        }
+
+        /*cascading style to indicate img rules within the .leaflet-popup-content*/
+        .leaflet-popup-content img {
+            width: 100%;
+        }
+
+        /* 
+		When browser is 900px high or less
+		make the font a little smaller.
+		 */
+        @media screen and (max-height: 400px) {
+
+            #about p {
+                font-size: .6em;
+            }
+
+            h1 {
+                font-size: 1.2em;
+            }
+
+            #about h2 {
+                font-size: 1em;
+            }
+
+            .leaflet-popup-content {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 0.9em;
+            }
+        }
+
+        /* Don't display info block when window is very small */
+        @media screen and (max-height: 200px) {
+
+            #about {
+                display: none;
+            }
+        }
+
+        #info {
+            position: absolute;
+            margin-top: 0;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            letter-spacing: .04em;
+            color: #3d3d3d;
+            padding: 5px 10px;
+            top: 130px;
+            right: 10px;
+            z-index: 1000;
+            /*can't place button over map without z index default z index is 0, 1000 is higher than all other panes*/
+            border-radius: 4px;
+            border: 1px solid #aaa;
+            background: rgba(256, 256, 256, .3);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1 id='title'>Lexington's Public Parks through Redlining Lense
+
+    </h1>
+
+    <div id='map'></div>
+    <button id='info'>Info</button>
+
+    <section id="about">
+        <h2>HOLC graded Neighborhoods of Lexington</h2>
+        <p>In the 1930s the federal government's Home Owners' Loan Corporation collaborated with local
+            real estate professionals on the ground to create area descriptions. Each neighborhood area was
+            then assigned a grade corresponding to its relative mortgage security and color coded (A green, B blue, C
+            yellow, D red.)
+            A being the most secure and safe investment while D was considered hazardous.
+        </p>
+
+        <p>Grades were determined by considering quality of housing, recent history of sale and rent values,
+            and the racial and ethnic identity and class of residents. Terms often found in identifying the surrounding
+            populations
+            included infiltration, subversive, undesirable, inharmonious, and lower grade. The grades themselves are a
+            tool for redlining.
+        </p>
+
+        <p>Redlining would thus make it incredibly challenging for people living among the lower graded areas to obtain
+            loans and eventually homeowners.
+            As homeownership was at the time a considerable path to build wealth through the generations, this placed
+            those among the lower graded areas at
+            a distinct disadvantage for decades to come. Redlining was also a tool utilized by local cities and
+            communities to annex communities from accessing
+            varieties of public services.</p>
+
+        <p>This map is meant as an exploratory tool to determine what/if any legacy remains today with regards to
+            redlined neighborhoods of Lexington
+            in the 1930s and their access (within 0.5 miles) to public parks.
+        </p>
+
+        <p>Map data obtained from <a
+                href="https://dsl.richmond.edu/panorama/redlining/#loc=13/38.041/-84.555&maps=0&city=lexington-ky&text=downloads">Mapping
+                Inequality</a>,
+            and <a href="https://www.openstreetmap.org/#map=4/38.01/-95.84">Open Street Map Query </a> using QGIS 3.16
+            for parks (7 August 2021) </p>
+
+        <p>Map authored by RC Ramsey<br>See other projects at: <a href="https://rcramsey.github.io/">RC Ramsey
+                Archives</a></p>
+        <p>Map made possible by:</p>
+
+        <a href="https://newmapsplus.github.io"> <img
+                src="https://newmapsplus.github.io/assets/graphics/logo-2018-nmp-75px-h-gray.png"
+                alt="University of Kentucky New Maps Plus"></a>
+
+
+    </section>
+
+    <!--Load scripts-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <!--Most up to date leaflet-->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+    <!--load script for full projection CRS support in leaflet-->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.7.2/proj4.js'></script>
+    <!-- Load a Leaflet plugin to provide geolocation. -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8">
+    </script>
+
+    <script>
+        var options = {
+            center: [38.0406, -84.5037],
+            zoom: 13,
+            zoomControl: false
+        }
+
+
+        var locate_options = {
+            position: 'topright',
+            strings: {
+                title: "Where am I?"
+            }
+        }
+
+        var map = L.map('map', options);
+
+        // add zoom control to top right window position
+        L.control.zoom({
+            position: 'topright'
+        }).addTo(map);
+
+        // add geolocation control to top right window position (Leaflet can handle multiple top-right elements)
+        L.control.locate(locate_options).addTo(map);
+
+        // Get basemap URL from Leaflet Providers
+        var basemap_url = 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png'
+
+        // Get basemap attributes from Leaflet Providers
+        var basemap_attributes = {
+            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+            //minZoom: 5,
+            maxZoom: 20
+        };
+        // request map tiles 
+        var tiles = L.tileLayer(basemap_url, basemap_attributes);
+        map.addLayer(tiles);
+
+        // AJAX request/load data files 
+        var aParkGeoJson = $.getJSON("data/holca_parks_int_4326.json");
+        var bParkGeoJson = $.getJSON("data/holcb_parks_int_4326.json");
+        var cParkGeoJson = $.getJSON("data/holcc_parks_int_4326.json");
+        var dParkGeoJson = $.getJSON("data/holcd_parks_int_4326.json");
+        var holcGeoJson = $.getJSON("data/KYLexington1936.geojson");
+
+        // when data has been loaded (is done) use function to pass data, call drawLayers function and pass the first index item that comes from the AJAX request.
+        $.when(aParkGeoJson, bParkGeoJson, cParkGeoJson, dParkGeoJson, holcGeoJson).done(function (aData, bData, cData,
+            dData, holcData) {
+            //console.log(aData, bData, cData, dData, holcData) //notice how the data has 3 indexed items, only the first item is of interest
+            drawLayers(aData[0], bData[0], cData[0], dData[0], holcData[0]);
+        });
+
+        function drawLayers(aData, bData, cData, dData, holcData) {
+
+            //create a parks layer
+            var dataLayerA = L.geoJson(aData, {
+
+                filter: function (features) {
+                    if (features.geometry.type == "MultiPolygon") {
+                        return features;
+                    }
+                },
+
+                style: function (features) {
+                    return {
+                        color: ' #1b385a',
+                        weight: 1,
+                        interactive: false
+                    }
+                },
+
+               //  add UI of park name popup
+                    onEachFeature: function (feature, layer) {
+                        var p = layer.feature.properties
+                        var popup = `<h2>${p["name"]}</h2>
+                                      Acres:  ${p['acres']}`;
+                        layer.bindPopup(popup),
+                            layer.on("click", function (e) {
+                                this.openPopup();
+                            })
+                    }
+            }).addTo(map);
+
+            //create b parks layer
+            var dataLayerB = L.geoJson(bData, {
+
+                filter: function (features) {
+                    if (features.geometry.type == "MultiPolygon") {
+                        return features;
+                    }
+                },
+                style: function (features) {
+                    return {
+                        color: ' #1b385a',
+                        weight: 1
+                    }
+                },
+
+               //  add UI of park name popup
+               onEachFeature: function (feature, layer) {
+                        var p = layer.feature.properties
+                        var popup = `<h2>${p["name"]}</h2>
+                                      Acres:  ${p['acres']}`;
+                        layer.bindPopup(popup),
+                            layer.on("click", function (e) {
+                                this.openPopup();
+                            })
+                    }
+            }).addTo(map);
+
+            //create c parks layer
+            var dataLayerC = L.geoJson(cData, {
+
+                filter: function (features) {
+                    if (features.geometry.type == "MultiPolygon") {
+                        return features;
+                    }
+                },
+                style: function (features) {
+                    return {
+                        color: ' #1b385a',
+                        weight: 1
+                    }
+                },
+
+                //  add UI of park name popup
+                onEachFeature: function (feature, layer) {
+                        var p = layer.feature.properties
+                        var popup = `<h2>${p["name"]}</h2>
+                                      Acres:  ${p['acres']}`;
+                        layer.bindPopup(popup),
+                            layer.on("click", function (e) {
+                                this.openPopup();
+                            })
+                    }
+            }).addTo(map);
+
+            // create d parks layer
+            var dataLayerD = L.geoJson(dData, {
+
+                filter: function (features) {
+                    if (features.geometry.type == "MultiPolygon") {
+                        return features;
+                    }
+                },
+                style: function (features) {
+                    return {
+                        color: ' #1b385a',
+                        weight: 1
+                    }
+                },
+
+                // add UI of park name popup
+                onEachFeature: function (feature, layer) {
+                    var p = layer.feature.properties
+                    var popup = `<h2>${p["name"]}</h2>
+                                Acres: ${p['acres']}`;
+                    layer.bindPopup(popup),
+                        layer.on("click", function (e) {
+                            this.openPopup();
+                        })
+                }
+            }).addTo(map);
+
+            // create HOLC A neighborhood data layer
+            var dataLayerHolcA = L.geoJson(holcData, {
+                filter: function(features){
+                    if(features.properties.holc_grade =="A"){
+                        return features;
+                    }
+                },
+                style: function (features) {
+                    return {
+                        color: 'green',
+                        weight: 1,
+                        interactive: false
+                    }
+                },
+
+                // add UI of park name popup
+                onEachFeature: function (feature, layer) {
+                    var p = layer.feature.properties
+                    var popup = `<h2>${p["holc_grade"]}</h2>`;
+                    layer.bindPopup(popup),
+                        layer.on("click", function (e) {
+                            this.openPopup();
+                        })
+                }
+            }).addTo(map);
+
+            // create HOLC B neighborhood data layer
+            var dataLayerHolcB = L.geoJson(holcData, {
+                filter: function(features){
+                    if(features.properties.holc_grade =="B"){
+                        return features;
+                    }
+                },
+                style: function (features) {
+                    return {
+                        color: 'blue',
+                        weight: 1,
+                        interactive: false
+                    }
+                },
+
+                // add UI of park name popup
+                onEachFeature: function (feature, layer) {
+                    var p = layer.feature.properties
+                    var popup = `<h2>${p["holc_grade"]}</h2>`;
+                    layer.bindPopup(popup),
+                        layer.on("click", function (e) {
+                            this.openPopup();
+                        })
+                }
+            }).addTo(map);
+
+            // create HOLC C neighborhood data layer
+            var dataLayerHolcC = L.geoJson(holcData, {
+                filter: function(features){
+                    if(features.properties.holc_grade =="C"){
+                        return features;
+                    }
+                },
+                style: function (features) {
+                    return {
+                        color: '#ffdd3c',
+                        weight: 1,
+                        interactive: false
+                    }
+                },
+
+            // add UI of park name popup
+            onEachFeature: function (feature, layer) {
+                var p = layer.feature.properties
+                var popup = `<h2>${p["holc_grade"]}</h2>`;
+                layer.bindPopup(popup),
+                    layer.on("click", function (e) {
+                        this.openPopup();
+                    })
+            }
+            }).addTo(map);
+
+            // create HOLC D neighborhood data layer
+            var dataLayerHolcD = L.geoJson(holcData, {
+                filter: function(features){
+                    if(features.properties.holc_grade =="D"){
+                        return features;
+                    }
+                },
+            style: function (features) {
+                return {
+                    color: 'red',
+                    weight: 1,
+                    interactive: false
+                }
+            },
+
+            // add UI of park name popup
+            onEachFeature: function (feature, layer) {
+                var p = layer.feature.properties
+                var popup = `<h2>${p["holc_grade"]}</h2>`;
+                layer.bindPopup(popup),
+                    layer.on("click", function (e) {
+                        this.openPopup();
+                    })
+            }
+            }).addTo(map);
+            
+            addControl(dataLayerA, dataLayerB, dataLayerC, dataLayerD, dataLayerHolcA, dataLayerHolcB, dataLayerHolcC, dataLayerHolcD);
+        }   // end drawLayers function
+
+            //create button to maximize map space and reduce about/info/title
+            var button = document.querySelector('#info')
+            var title = document.querySelector('#title')
+            var about = document.querySelector('#about')
+            var clicked = false
+            button.addEventListener('click', function () {
+                clicked = !clicked
+                if (clicked) {
+                    title.style.visibility = 'hidden'
+                    about.style.visibility = 'hidden'
+                    button.style.backgroundColor = '#aaa'
+                    button.style.color = '#fff'
+                } else {
+                    title.style.visibility = 'inherit'
+                    about.style.visibility = 'inherit'
+                    button.style.background = 'rgba(256, 256, 256, .3)'
+                    button.style.color = '#3d3d3d'
+                }
+            })
+
+        function addControl(dataLayerA, dataLayerB, dataLayerC, dataLayerD, dataLayerHolcA, dataLayerHolcB, dataLayerHolcC, dataLayerHolcD) {
+            //create leaflet layer control object (i.e. legend)
+            var sourcesLayers = {
+                "A Parks": dataLayerA,
+                "B Parks": dataLayerB,
+                "C Parks": dataLayerC,
+                "D Parks": dataLayerD,
+                "<b style='color:green;text-shadow: 0px 0px 0.5px #333;'>HOLC A Neighborhoods</b>": dataLayerHolcA,
+                "<b style='color:blue;text-shadow: 0px 0px 0.5px #333;'>HOLC B Neighborhoods</b>": dataLayerHolcB,
+                "<b style='color:#ffdd3c;text-shadow: 0px 0px 0.5px #333;'>HOLC C Neighborhoods</b>": dataLayerHolcC,
+                "<b style='color:red;text-shadow: 0px 0px 0.5px #333;'>HOLC D Neighborhoods</b>": dataLayerHolcD
+            }
+
+        L.control.layers(null, sourcesLayers, {
+            collapsed: false,
+            position: 'bottomright'
+        }).addTo(map);
+        } //end addControl function
+    </script>
+
+</body>
+
+</html>

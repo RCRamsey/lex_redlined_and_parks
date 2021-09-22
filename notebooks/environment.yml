@@ -1,0 +1,13 @@
+name: '674_06'
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - geopandas
+  - rasterio
+  - matplotlib
+  - jupyter
+  - psycopg2
+  - geoalchemy2
+  - geopy
+prefix: C:\Users\jbra2\.conda\envs\674_06
