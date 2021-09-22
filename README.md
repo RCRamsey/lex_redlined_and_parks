@@ -15,3 +15,5 @@ To run the notebook contained within this Repo the following libraries will need
 -geopy  
 
 It is advised to use the conda-forge channel for installing these libraries into your environment.
+
+Vist [here]('https://github.com/RCRamsey/lex_redlined_and_parks')
