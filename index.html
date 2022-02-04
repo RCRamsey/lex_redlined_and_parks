@@ -316,8 +316,8 @@
                //  add UI of park name popup
                     onEachFeature: function (feature, layer) {
                         var p = layer.feature.properties
-                        var popup = `<h2>${p["name"]}</h2>
-                                      Acres:  ${p['acres']}`; //acres needs more work, rounding, revising nulls
+                        var popup = `<h2>${p["name"]}</h2>`;
+                                      //Acres:  ${p['acres']}`; //acres needs more work, rounding, revising nulls
                         layer.bindPopup(popup),
                             layer.on("click", function (e) {
                                 this.openPopup();
@@ -343,8 +343,8 @@
                //  add UI of park name popup
                onEachFeature: function (feature, layer) {
                         var p = layer.feature.properties
-                        var popup = `<h2>${p["name"]}</h2>
-                                      Acres:  ${p['acres']}`; //acres needs more work, rounding, revising nulls
+                        var popup = `<h2>${p["name"]}</h2>`;
+                                      // Acres:  ${p['acres']}`; //acres needs more work, rounding, revising nulls
                         layer.bindPopup(popup),
                             layer.on("click", function (e) {
                                 this.openPopup();
@@ -370,8 +370,8 @@
                 //  add UI of park name popup
                 onEachFeature: function (feature, layer) {
                         var p = layer.feature.properties
-                        var popup = `<h2>${p["name"]}</h2>
-                                      Acres:  ${p['acres']}`; //acres needs more work, rounding, revising nulls
+                        var popup = `<h2>${p["name"]}</h2>`;
+                                      // Acres:  ${p['acres']}`; //acres needs more work, rounding, revising nulls
                         layer.bindPopup(popup),
                             layer.on("click", function (e) {
                                 this.openPopup();
@@ -397,8 +397,8 @@
                 // add UI of park name popup
                 onEachFeature: function (feature, layer) {
                     var p = layer.feature.properties
-                    var popup = `<h2>${p["name"]}</h2>
-                                Acres: ${p['acres']}`; //acres needs more work, rounding, revising nulls
+                    var popup = `<h2>${p["name"]}</h2>`;
+                                // Acres: ${p['acres']}`; //acres needs more work, rounding, revising nulls
                     layer.bindPopup(popup),
                         layer.on("click", function (e) {
                             this.openPopup();
